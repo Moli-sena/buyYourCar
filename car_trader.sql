@@ -1,14 +1,13 @@
 -- phpMyAdmin SQL Dump
--- version 4.7.4
+-- version 5.0.2
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jun 27, 2020 at 04:18 PM
--- Server version: 10.1.29-MariaDB
--- PHP Version: 7.1.12
+-- Generation Time: Jul 04, 2020 at 07:57 PM
+-- Server version: 10.4.13-MariaDB
+-- PHP Version: 7.4.7
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -31,19 +30,32 @@ SET time_zone = "+00:00";
 CREATE TABLE `carts` (
   `id` int(11) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `seller_id` int(11) NOT NULL,
-  `price` varchar(255) NOT NULL,
-  `tax` varchar(255) NOT NULL,
+  `gross` double(11,2) NOT NULL DEFAULT 0.00,
+  `discount` double DEFAULT NULL,
+  `tax` double DEFAULT NULL,
+  `total_amount` double DEFAULT NULL,
+  `order_id` varchar(64) DEFAULT NULL,
+  `payment_mode` int(2) DEFAULT NULL,
+  `created_at` date DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='(Temporary collection of items in the cart before checkout';
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `cart_items`
+--
+
+CREATE TABLE `cart_items` (
+  `id` int(11) NOT NULL,
+  `seller_id` int(11) DEFAULT NULL,
+  `cart_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL DEFAULT 1,
   `car_list_id` int(11) NOT NULL,
-  `created_at` datetime NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=latin1;
-
---
--- Dumping data for table `carts`
---
-
-INSERT INTO `carts` (`id`, `user_id`, `seller_id`, `price`, `tax`, `car_list_id`, `created_at`) VALUES
-(1, 2, 1, '70000', '12600', 2, '2020-06-27 13:58:39');
+  `gross_amount` double(11,2) DEFAULT NULL,
+  `discount_amount` double DEFAULT NULL,
+  `total_amount` double DEFAULT NULL,
+  `delivery_charge` double(11,2) DEFAULT 0.00
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='(Temporary collection of items in the cart before checkout)';
 
 -- --------------------------------------------------------
 
@@ -55,20 +67,93 @@ CREATE TABLE `car_lists` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `user_id` int(11) NOT NULL,
-  `car_price` varchar(255) NOT NULL,
-  `is_sold` tinyint(1) NOT NULL DEFAULT '0',
-  `active` tinyint(1) NOT NULL DEFAULT '1',
-  `deleted` tinyint(1) NOT NULL DEFAULT '0'
+  `category_id` tinyint(1) NOT NULL,
+  `price` double(11,2) NOT NULL,
+  `car_price` double(11,2) NOT NULL,
+  `image` varchar(250) NOT NULL,
+  `description` text NOT NULL,
+  `model_no` varchar(200) NOT NULL,
+  `milage` varchar(200) NOT NULL,
+  `engine_size` varchar(200) NOT NULL,
+  `power` varchar(200) NOT NULL,
+  `gearbox` varchar(200) NOT NULL,
+  `number_of_seats` int(11) NOT NULL,
+  `color` varchar(200) NOT NULL,
+  `is_sold` tinyint(1) NOT NULL DEFAULT 0,
+  `active` tinyint(1) NOT NULL DEFAULT 1,
+  `deleted` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
 -- Dumping data for table `car_lists`
 --
 
-INSERT INTO `car_lists` (`id`, `name`, `user_id`, `car_price`, `is_sold`, `active`, `deleted`) VALUES
-(1, 'Maruti', 1, '1000000', 0, 1, 0),
-(2, 'Honda', 1, '70000', 1, 1, 0),
-(3, 'Honda New', 1, '80000', 0, 1, 0);
+INSERT INTO `car_lists` (`id`, `name`, `user_id`, `category_id`, `price`, `car_price`, `image`, `description`, `model_no`, `milage`, `engine_size`, `power`, `gearbox`, `number_of_seats`, `color`, `is_sold`, `active`, `deleted`) VALUES
+(4, 'BMW i8', 3, 1, 10000000.00, 9000000.00, 'cars_1593863761.jpg', 'Scissor doors are designed for more than a dramatic entrance. Cleverly constructed of aluminum and carbon fiber, these sportscar signatures keep vehicle weight down while still looking incredible.', 'S123BMW', '12km/hr', '800cc', '500hp', 'Auto', 2, 'Black', 1, 1, 0),
+(5, 'Innova', 3, 1, 3500000.00, 3000000.00, 'cars_1593865350.jpg', 'ABS, Leather seats, Power Assisted Steering, Electric heated seats, New HU and AU, Xenon headlights', 'INNOVA222', '35km/hr', '600 cc', '300hp', 'Manual', 8, 'White', 0, 1, 0),
+(6, 'Swift', 3, 1, 600000.00, 500000.00, 'cars_1593865543.jpg', 'ABS, Leather seats, Power Assisted Steering, Electric heated seats, New HU and AU, Xenon headlights', 'SW555K', '40km/hr', '400cc', '150hp', 'Manual', 4, 'White', 0, 1, 0),
+(7, 'Honda i10', 3, 1, 500000.00, 350000.00, 'cars_1593865714.jpg', 'ABS, Leather seats, Power Assisted Steering, Electric heated seats, New HU and AU, Xenon headlights', 'HONDA85693H', '40km/hr', '350cc', '150hp', 'Manual', 4, 'Red', 1, 1, 0),
+(8, 'AudiQ7', 3, 1, 9000000.00, 8500000.00, 'cars_1593866069.jpg', 'ABS, Leather seats, Power Assisted Steering, Electric heated seats, New HU and AU, Xenon headlights', 'Q7AUDI123', '25km/hr', '1200cc', '800hp', 'Auto', 5, 'Black', 0, 1, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `categories`
+--
+
+CREATE TABLE `categories` (
+  `id` int(11) NOT NULL,
+  `name` varchar(200) NOT NULL,
+  `status` tinyint(1) NOT NULL,
+  `deleted` tinyint(1) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `categories`
+--
+
+INSERT INTO `categories` (`id`, `name`, `status`, `deleted`) VALUES
+(1, 'BMW', 1, 0),
+(2, 'Toyota', 1, 0),
+(4, 'Sujuki', 1, 0),
+(5, 'Honda', 1, 0),
+(7, 'Audi', 1, 0);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `invoices`
+--
+
+CREATE TABLE `invoices` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `order_id` varchar(255) NOT NULL,
+  `gross` double NOT NULL,
+  `discount` double DEFAULT 0,
+  `tax` double NOT NULL DEFAULT 0,
+  `total_amount` double NOT NULL,
+  `created_at` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `invoice_items`
+--
+
+CREATE TABLE `invoice_items` (
+  `id` int(11) NOT NULL,
+  `seller_id` int(11) DEFAULT NULL,
+  `invoice_id` int(11) NOT NULL,
+  `car_list_id` int(11) NOT NULL,
+  `gross_amount` double NOT NULL,
+  `quantity` int(11) DEFAULT 1,
+  `discount_amount` double DEFAULT 0,
+  `total_amount` double NOT NULL,
+  `delivery_charge` double(11,2) DEFAULT 0.00,
+  `created_at` datetime DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COMMENT='(Temporary collection of items in the cart before checkout)';
 
 -- --------------------------------------------------------
 
@@ -84,7 +169,7 @@ CREATE TABLE `users` (
   `password` varchar(255) DEFAULT NULL,
   `user_type` int(2) NOT NULL,
   `created_at` datetime NOT NULL,
-  `deleted` tinyint(1) DEFAULT '0'
+  `deleted` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1;
 
 --
@@ -93,7 +178,9 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `name`, `email`, `phone_number`, `password`, `user_type`, `created_at`, `deleted`) VALUES
 (1, 'Saller', 'saller@gmail.com', '07908292825', '$2y$10$ty5V4yvyuRmA/O1ZehaI2uTENbB1Ec0rsJgE/WOq9QHnzi4iIN3mW', 1, '2020-06-27 12:53:56', 0),
-(2, 'Buyer', 'buyer@gmail.com', '9547933888', '$2y$10$0TwK8NhtdFNGlTm0o3wXC.7h.giYesBLJWVR59AOWmtPgUTQ/JsJO', 2, '2020-06-27 12:56:52', 0);
+(2, 'Buyer', 'buyer@gmail.com', '9547933888', '$2y$10$0TwK8NhtdFNGlTm0o3wXC.7h.giYesBLJWVR59AOWmtPgUTQ/JsJO', 2, '2020-06-27 12:56:52', 0),
+(3, 'Moli Senapati', 'mou@g.com', '9064956113', '$2y$10$pjD16TpqlWfgpOIXf6UZrutGCxWatkuoTf8Bfhr5v2odIqUgbStNS', 1, '2020-07-03 02:14:46', 0),
+(4, 'Buyer2', 'b@g.com', '7602023904', '$2y$10$shHpJj.HEhMFi438ucFeC.6Y.aBfBYbbKQ8Qgl2mgprylCMWB3GGm', 2, '2020-07-04 13:12:39', 0);
 
 --
 -- Indexes for dumped tables
@@ -106,10 +193,38 @@ ALTER TABLE `carts`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `cart_items`
+--
+ALTER TABLE `cart_items`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indexes for table `car_lists`
 --
 ALTER TABLE `car_lists`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `categories`
+--
+ALTER TABLE `categories`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `invoices`
+--
+ALTER TABLE `invoices`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `invoice_items`
+--
+ALTER TABLE `invoice_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `invoice_id` (`invoice_id`),
+  ADD KEY `item_id` (`car_list_id`),
+  ADD KEY `invoice_id_2` (`invoice_id`);
 
 --
 -- Indexes for table `users`
@@ -125,19 +240,43 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `carts`
 --
 ALTER TABLE `carts`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `cart_items`
+--
+ALTER TABLE `cart_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `car_lists`
 --
 ALTER TABLE `car_lists`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `categories`
+--
+ALTER TABLE `categories`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `invoices`
+--
+ALTER TABLE `invoices`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `invoice_items`
+--
+ALTER TABLE `invoice_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
